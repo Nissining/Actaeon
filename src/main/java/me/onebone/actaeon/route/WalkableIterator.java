@@ -81,7 +81,7 @@ public class WalkableIterator implements Iterator<Block> {
             Vector3 check;
             Vector3 next = this.currentPosition.add(this.direction);
             if (!checked.contains(check = this.currentPosition.floor())) {
-                Block block = this.level.getBlock(check);
+                Block block = this.level.getBlock(check, false);
                 double walkable = AdvancedRouteFinder.isWalkableAt(entity, block);
                 //Server.getInstance().getLogger().info(block.getLocation().toString() + " LEFT walkable=" + walkable);
                 if (walkable < 0) {
@@ -94,7 +94,7 @@ public class WalkableIterator implements Iterator<Block> {
             /*
             //Left
             if (!checked.contains(check = this.currentPositionLeft.floor())) {
-                Block block = this.level.getBlock(check);
+                Block block = this.level.getBlock(check, false);
                 double walkable = this.advancedRouteFinder.isWalkableAt(block);
                 //Server.getInstance().getLogger().info(block.getLocation().toString() + " LEFT walkable=" + walkable);
                 if (walkable < 0) {
@@ -108,7 +108,7 @@ public class WalkableIterator implements Iterator<Block> {
             //Right
             next = this.currentPositionRight.add(this.direction);
             if (!checked.contains(check = this.currentPositionRight.floor())) {
-                Block block = this.level.getBlock(check);
+                Block block = this.level.getBlock(check, false);
                 double walkable = this.advancedRouteFinder.isWalkableAt(block);
                 //Server.getInstance().getLogger().info(block.getLocation().toString() + " RIGHT walkable=" + walkable);
                 if (walkable < 0) {

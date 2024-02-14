@@ -183,7 +183,7 @@ public class AdvancedRouteFinder implements IRouteFinder {
 	public static Vector3 getHighestUnder(Entity entity, double x, double dy, double z, int limit) {
 		int minY = Math.max((int) dy - limit, 0);
 		for(int y = (int)dy; y >= minY; y--){
-			int blockId = entity.getLevel().getBlock((int)x, y, (int)z).getId();
+			int blockId = entity.getLevel().getBlock((int)x, y, (int)z, false).getId();
 
 			if(!canWalkOn(blockId)) return new Vector3(x, y, z);
 			if(!Router.canPassThrough(blockId)) return new Vector3(x, y, z);
@@ -201,7 +201,7 @@ public class AdvancedRouteFinder implements IRouteFinder {
 
 		if ((entity instanceof Fallable || -4 < diff)
 				&& (entity instanceof Climbable || diff <= 1)
-				&& canWalkOn(entity.getLevel().getBlock((int)block.x, (int)block.y, (int)block.z).getId())
+				&& canWalkOn(entity.getLevel().getBlock((int)block.x, (int)block.y, (int)block.z, false).getId())
 		) {
 			return diff;
 		}

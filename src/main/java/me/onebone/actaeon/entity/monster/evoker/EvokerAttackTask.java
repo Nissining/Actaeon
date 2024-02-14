@@ -61,7 +61,7 @@ public class EvokerAttackTask extends MovingEntityTask {
                 double z = this.getEntity().getZ() + v2.multiply(index + 1).getY();
                 double y = this.getEntity().getY();
                 for (int offset = 0; offset < 5; offset++) {
-                    if (this.getEntity().getLevel().getBlock(new Vector3(x, y + offset, z)).isAir()) {
+                    if (this.getEntity().getLevel().getBlock(new Vector3(x, y + offset, z), false).isAir()) {
                         y += offset;
                         break;
                     }
@@ -91,7 +91,7 @@ public class EvokerAttackTask extends MovingEntityTask {
                     double z = this.getEntity().getZ() + Mth.sin(angle);
                     double y = this.getEntity().getY();
                     for (int offset = 0; offset < 5; offset++) {
-                        if (this.getEntity().getLevel().getBlock(new Vector3(x, y + offset, z)).isAir()) {
+                        if (this.getEntity().getLevel().getBlock(new Vector3(x, y + offset, z), false).isAir()) {
                             y += offset;
                             break;
                         }
@@ -120,7 +120,7 @@ public class EvokerAttackTask extends MovingEntityTask {
                     double z = this.getEntity().getZ() + 2 * Mth.sin(angle);
                     double y = this.getEntity().getY();
                     for (int offset = 0; offset < 5; offset++) {
-                        if (this.getEntity().getLevel().getBlock(new Vector3(x, y + offset, z)).isAir()) {
+                        if (this.getEntity().getLevel().getBlock(new Vector3(x, y + offset, z), false).isAir()) {
                             y += offset;
                             break;
                         }
