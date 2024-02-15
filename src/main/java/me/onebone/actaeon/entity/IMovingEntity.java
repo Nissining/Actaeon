@@ -72,4 +72,7 @@ public interface IMovingEntity {
 
     void updateBotTask(MovingEntityTask task);
 
+    default int getDifficulty() {
+        return getLevel().getServer().getDifficulty();
+    }
 }
