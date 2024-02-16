@@ -1,30 +1,16 @@
 package me.onebone.actaeon.route;
 
-import cn.nukkit.item.Item;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
 import me.onebone.actaeon.entity.IMovingEntity;
 import net.easecation.eccommons.promise.AsyncPromise;
 
 import java.util.ArrayList;
-import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Router implements Iterator<Node> {
-
-	private static final BitSet canPassThrough;
-
-	static {
-		canPassThrough = new BitSet();
-		canPassThrough.set(0);
-		Item.getCreativeItems().stream().
-				filter(item -> item.getBlock().getId() > 0 && item.getBlock().canPassThrough()).
-				forEach(item -> canPassThrough.set(item.getId()));
-	}
-
-	// =====================
 
 	private IRouteFinder routeFinder = new SimpleRouteFinder();  //默认使用Simple寻路算法
 	private int current = 0;
@@ -116,7 +102,7 @@ public class Router implements Iterator<Node> {
 	 */
 	@Override
 	public boolean hasNext() {
-		if (nodes.size() == 0) throw new IllegalStateException("There is no path found");
+		if (nodes.isEmpty()) throw new IllegalStateException("There is no path found");
 
 		return !this.arrived && nodes.size() > this.current + 1;
 	}
@@ -127,7 +113,7 @@ public class Router implements Iterator<Node> {
 	 */
 	@Override
 	public Node next() {
-		if (nodes.size() == 0) {
+		if (nodes.isEmpty()) {
 			throw new IllegalStateException("There is no path found");
 		}
 
@@ -162,7 +148,7 @@ public class Router implements Iterator<Node> {
 	 * @return current node
 	 */
 	public Node get() {
-		if (nodes.size() == 0) throw new IllegalStateException("There is no path found.");
+		if (nodes.isEmpty()) throw new IllegalStateException("There is no path found.");
 
 		if (this.arrived) return null;
 		//new ArrayList<>(this.nodes).forEach(n -> Server.broadcastPacket(level.getPlayers().values().stream().toArray(Player[]::new), new EntityFlameParticle(n.getVector3()).encode()[0]));
@@ -178,10 +164,6 @@ public class Router implements Iterator<Node> {
 	}
 
 	public boolean hasRoute() {
-		return this.nodes.size() > 0;
-	}
-
-	public static boolean canPassThrough(int blockId) {
-		return canPassThrough.get(blockId);
+		return !this.nodes.isEmpty();
 	}
 }

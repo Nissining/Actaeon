@@ -20,7 +20,7 @@ public class AdvancedRouteFinder implements IRouteFinder {
 		Set<Node> open = new HashSet<>();
 		Grid grid = new Grid();
 		long forceStopTime = System.currentTimeMillis() + 1000 * 5;  // 寻路超过5秒则强制停止
-		AsyncPromise<List<Node>> promise = new AsyncTransientScheduler<List<Node>>("Actaeon route finder (Advanced)", handler -> {
+        return new AsyncTransientScheduler<List<Node>>("Actaeon route finder (Advanced)", handler -> {
 			try {
 				Node startNode = new Node(start.floor());
 				Node endNode = new Node(destination.floor());
@@ -52,6 +52,10 @@ public class AdvancedRouteFinder implements IRouteFinder {
 						}
 					} catch (Exception e) {
 						Actaeon.getInstance().getLogger().alert("Failed to find node with lowest f", e);
+						return;
+					}
+
+					if (node == null) {
 						return;
 					}
 
@@ -102,7 +106,7 @@ public class AdvancedRouteFinder implements IRouteFinder {
 					node.closed = true;
 					open.remove(node);
 
-					for (Node neighbor : this.getNeighbors(entity, grid, node)) {
+					for (Node neighbor : getNeighbors(entity, grid, node)) {
 						if(neighbor.closed) continue;
 
 						double tentative_gScore = node.g + neighbor.getVector3().distance(node.getVector3());
@@ -112,7 +116,7 @@ public class AdvancedRouteFinder implements IRouteFinder {
 
 						neighbor.setParent(node);
 						neighbor.g = tentative_gScore;
-						neighbor.f = neighbor.g + this.heuristic(neighbor.getVector3(), endNode.getVector3());
+						neighbor.f = neighbor.g + heuristic(neighbor.getVector3(), endNode.getVector3());
 
 						if (System.currentTimeMillis() > forceStopTime) {
 							Actaeon.getInstance().getLogger().alert("Route finder (Advanced) force stopped");
@@ -120,13 +124,10 @@ public class AdvancedRouteFinder implements IRouteFinder {
 						}
 					}
 				}
-
 			} catch (Exception e) {
 				Server.getInstance().getLogger().logException(e);
 			}
 		}).schedule();
-
-		return promise;
 	}
 
 	@Override
@@ -183,10 +184,13 @@ public class AdvancedRouteFinder implements IRouteFinder {
 	public static Vector3 getHighestUnder(Entity entity, double x, double dy, double z, int limit) {
 		int minY = Math.max((int) dy - limit, 0);
 		for(int y = (int)dy; y >= minY; y--){
-			int blockId = entity.getLevel().getBlock((int)x, y, (int)z, false).getId();
-
-			if(!canWalkOn(blockId)) return new Vector3(x, y, z);
-			if(!Router.canPassThrough(blockId)) return new Vector3(x, y, z);
+			Block block = entity.getLevel().getBlock((int)x, y, (int)z, false);
+			if (!canWalkOn(block.getId())) {
+				return new Vector3(x, y, z);
+			}
+			if (!block.canPassThrough()) {
+				return new Vector3(x, y, z);
+			}
 		}
 		return null;
 	}
@@ -224,7 +228,7 @@ public class AdvancedRouteFinder implements IRouteFinder {
 	}
 
 	private static class Grid {
-		private Map<Double, Map<Double, Map<Double, Node>>> grid = new HashMap<>();
+		private final Map<Double, Map<Double, Map<Double, Node>>> grid = new HashMap<>();
 
 		public void clear(){
 			grid.clear();

@@ -42,7 +42,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	public static final String TAG_ARMOR = "Armor";
 
 	private boolean isKnockback = false;
-	private Router router;
+	private final Router router;
 	private TargetFinder targetFinder = null;
 	private Vector3 target = null;
 	private Entity hate = null;
