@@ -2,6 +2,7 @@ package me.onebone.actaeon.entity.monster;
 
 import cn.nukkit.entity.EntityAgeable;
 import cn.nukkit.entity.EntityID;
+import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.level.sound.SoundEnum;
@@ -76,5 +77,18 @@ public class Zombie extends Monster implements EntityAgeable, Fallable {
 			this.getLevel().addSound(this, SoundEnum.MOB_ZOMBIE_SAY);
 		}
 		return update;
+	}
+
+	@Override
+	protected void onAttackSuccess(EntityDamageByEntityEvent source) {
+		if (!isOnFire()) {
+			return;
+		}
+		int difficulty = server.getDifficulty();
+		ThreadLocalRandom random = ThreadLocalRandom.current();
+		if (random.nextInt(10) >= difficulty * 3) {
+			return;
+		}
+		source.getEntity().setOnFire(2 * difficulty);
 	}
 }

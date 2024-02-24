@@ -1,12 +1,11 @@
 package me.onebone.actaeon.task;
 
-import cn.nukkit.Server;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.entity.projectile.EntityArrow;
 import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
-import cn.nukkit.network.protocol.EntityEventPacket;
+import cn.nukkit.nbt.tag.CompoundTag;
 import me.onebone.actaeon.entity.IMovingEntity;
 
 import java.util.Random;
@@ -63,10 +62,6 @@ public class ShootArrowTask extends MovingEntityTask {
             }
 
             // 拉弓
-//            EntityEventPacket pk = new EntityEventPacket();
-//            pk.eid = this.getEntity().getEntity().getId();
-//            pk.event = EntityEventPacket.USE_ITEM;
-//            Server.broadcastPacket(this.getEntity().getEntity().getViewers().values(), pk);
             if (this.target != null) {
                 this.getEntity().getEntity().setDataProperty(new LongEntityData(Entity.DATA_TARGET_EID, this.target.getId()));
                 this.getEntity().getEntity().setDataFlag(Entity.DATA_FLAG_FACING_TARGET_TO_RANGE_ATTACK, true);
@@ -83,12 +78,16 @@ public class ShootArrowTask extends MovingEntityTask {
                 double offset = uncertainty * 0.0074999998;
                 dir = dir.add(offset * random.nextGaussian(), offset * random.nextGaussian(), offset * random.nextGaussian());
             }
+            CompoundTag nbt = Entity.getDefaultNBT(this.getEntity().getEntity().add(0, this.getEntity().getEntity().getEyeHeight(), 0), dir.multiply(pow),
+                    (float) Mth.atan2(dir.x, dir.z) * Mth.RAD_TO_DEG,
+                    (float) Mth.atan2(dir.y, dir.horizontalDistance()) * Mth.RAD_TO_DEG);
+            if (getEntity().getDifficulty() >= 3 && ThreadLocalRandom.current().nextBoolean()) {
+                nbt.putShort("Fire", 45 * 60);
+            }
             // 射出弓箭
             EntityArrow arrow = new EntityArrow(
                     this.getEntity().getEntity().getChunk(),
-                    Entity.getDefaultNBT(this.getEntity().getEntity().add(0, this.getEntity().getEntity().getEyeHeight(), 0), dir.multiply(pow),
-                            (float) Mth.atan2(dir.x, dir.z) * Mth.RAD_TO_DEG,
-                            (float) Mth.atan2(dir.y, dir.horizontalDistance()) * Mth.RAD_TO_DEG),
+                    nbt,
                     this.getEntity().getEntity()
             );
             arrow.setPickupMode(EntityArrow.PICKUP_NONE);
