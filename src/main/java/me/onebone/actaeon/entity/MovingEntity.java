@@ -333,14 +333,17 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	}
 
 	@Override
-	public void setHealth(float health) {
-		super.setHealth(health);
+	public boolean setHealth(float health) {
+		if (!super.setHealth(health)) {
+			return false;
+		}
 		UpdateAttributesPacket pk0 = new UpdateAttributesPacket();
 		pk0.entityId = this.getId();
 		pk0.entries = new Attribute[]{
 				Attribute.getAttribute(Attribute.HEALTH).setMaxValue(this.getMaxHealth()).setValue(this.getHealth()),
 		};
 		this.getLevel().addChunkPacket(this.getChunkX(), this.getChunkZ(), pk0);
+		return true;
 	}
 
 	@Override
