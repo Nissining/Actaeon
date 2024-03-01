@@ -99,7 +99,7 @@ public class EntityEvocationFang extends Entity {
                 this.getLevel().addParticleEffect(this.add(0, 2, 0), ParticleEffect.EVOCATION_FANG);
                 Random random = ThreadLocalRandom.current();
                 for (int i = 0; i < 5; i++) {
-                    this.getLevel().addParticle(new CriticalParticle(this.add(random.nextDouble() - 0.5, 1 + random.nextDouble() * 1.2, random.nextDouble() - 0.5)));
+                    this.getLevel().addParticle(new CriticalParticle(this.add(random.nextFloat() - 0.5f, 1 + random.nextFloat() * 1.2f, random.nextFloat() - 0.5f)));
                 }
                 this.kill();
             }

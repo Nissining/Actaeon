@@ -81,7 +81,7 @@ public class ShootArrowTask extends MovingEntityTask {
             CompoundTag nbt = Entity.getDefaultNBT(this.getEntity().getEntity().add(0, this.getEntity().getEntity().getEyeHeight(), 0), dir.multiply(pow),
                     (float) Mth.atan2(dir.x, dir.z) * Mth.RAD_TO_DEG,
                     (float) Mth.atan2(dir.y, dir.horizontalDistance()) * Mth.RAD_TO_DEG);
-            if (getEntity().getDifficulty() >= 3 && ThreadLocalRandom.current().nextBoolean()) {
+            if (getEntity().getEntity().isOnFire() && getEntity().getDifficulty() >= 3 && ThreadLocalRandom.current().nextBoolean()) {
                 nbt.putShort("Fire", 45 * 60);
             }
             // 射出弓箭

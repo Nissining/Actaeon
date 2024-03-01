@@ -19,7 +19,7 @@ public class PanicTargetFinder extends TargetFinder {
 	protected void find() {
 		Random random = ThreadLocalRandom.current();
 		this.entity.getEntity().setSprinting(true);
-		this.entity.setTarget(new Vector3(this.entity.getX() + random.nextDouble() * range * 2 - range, this.entity.getY(), this.entity.getZ() + random.nextDouble() * range * 2 - range), "Panic", true);
+		this.entity.setTarget(new Vector3(this.entity.getX() + random.nextFloat() * range * 2 - range, this.entity.getY(), this.entity.getZ() + random.nextFloat() * range * 2 - range), "Panic", true);
 	}
 
 }

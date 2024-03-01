@@ -43,7 +43,7 @@ public class StrollingTargetFinder extends TargetFinder {
             Random random = ThreadLocalRandom.current();
             Vector3 base = this.entity.getRealTarget() != null ? this.entity.getTarget() : this.getEntity().getPosition();
             //for (int i = 0; i < 5; i++) {
-                double r = random.nextDouble() * 360;
+                float r = random.nextFloat() * 360;
                 double x = this.radius * Mth.cos(Math.toRadians(r));
                 double z = this.radius * Mth.sin(Math.toRadians(r));
                 double y = base.getY();
