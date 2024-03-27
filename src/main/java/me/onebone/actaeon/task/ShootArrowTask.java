@@ -12,6 +12,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class ShootArrowTask extends MovingEntityTask {
+    private final float prevSpeed;
 
     private final int fullTicks;
     private int ticks;
@@ -20,6 +21,8 @@ public class ShootArrowTask extends MovingEntityTask {
 
     private final double pow;
     private final double uncertainty;
+
+    private Runnable callback;
 
     public ShootArrowTask(IMovingEntity entity, Entity target, double pitch) {
         this(entity, target, 40, pitch);
@@ -41,6 +44,12 @@ public class ShootArrowTask extends MovingEntityTask {
         this.pitch = pitch;
         this.pow = pow;
         this.uncertainty = uncertainty;
+        prevSpeed = entity.getEntity().getMovementSpeed();
+    }
+
+    public ShootArrowTask setCallback(Runnable action) {
+        this.callback = action;
+        return this;
     }
 
     @Override
@@ -50,9 +59,7 @@ public class ShootArrowTask extends MovingEntityTask {
                 this.getEntity().updateBotTask(null);
                 return;
             }
-            this.getEntity().setLookAtFront(false);
-            this.getEntity().getEntity().setSprinting(false);
-            this.getEntity().getEntity().setSneaking(false);
+//            this.getEntity().setLookAtFront(false);
             if (this.target != null) {
                 double angle = Mth.atan2(this.target.z - this.getEntity().getZ(), this.target.x - this.getEntity().getZ());
                 double yaw = (float) ((angle * 180) / Math.PI) - 90;
@@ -92,14 +99,9 @@ public class ShootArrowTask extends MovingEntityTask {
             );
             arrow.setPickupMode(EntityArrow.PICKUP_NONE);
             arrow.spawnToAll();
-            this.getEntity().getEntity().setMovementSpeed(0.1f);
-            this.getEntity().getEntity().setDataProperty(new LongEntityData(Entity.DATA_TARGET_EID, 0));
-            this.getEntity().getEntity().setDataFlag(Entity.DATA_FLAG_FACING_TARGET_TO_RANGE_ATTACK, false);
             this.getEntity().updateBotTask(null);
         } else {
-            this.getEntity().setLookAtFront(false);
-            this.getEntity().getEntity().setSprinting(false);
-            this.getEntity().getEntity().setSneaking(false);
+//            this.getEntity().setLookAtFront(false);
             double angle = Mth.atan2(this.target.z - this.getEntity().getZ(), this.target.x - this.getEntity().getX());
             double yaw = (float) ((angle * 180) / Math.PI) - 90;
             double distance = this.getEntity().distance(this.target);
@@ -113,10 +115,13 @@ public class ShootArrowTask extends MovingEntityTask {
 
     @Override
     public void forceStop() {
-        this.getEntity().getEntity().setSprinting(false);
-        this.getEntity().getEntity().setSneaking(false);
-        this.getEntity().getEntity().setMovementSpeed(0.1f);
-        this.getEntity().setLookAtFront(true);
+        this.getEntity().getEntity().setDataProperty(new LongEntityData(Entity.DATA_TARGET_EID, 0));
+        this.getEntity().getEntity().setDataFlag(Entity.DATA_FLAG_FACING_TARGET_TO_RANGE_ATTACK, false);
+        this.getEntity().getEntity().setMovementSpeed(prevSpeed == 0 ? 0.1f : prevSpeed);
+//        this.getEntity().setLookAtFront(true);
+        if (callback != null) {
+            callback.run();
+        }
     }
 
 }

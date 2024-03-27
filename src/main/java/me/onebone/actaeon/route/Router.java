@@ -19,6 +19,8 @@ public class Router implements Iterator<Node> {
 	protected Position lastDestination = null;
 	private boolean arrived = true;
 	protected List<Node> nodes = new ArrayList<>();
+	private double stopDistanceSq;
+	private boolean ignoreStopDistance;
 
 	protected IMovingEntity entity;
 	public long nextRouteFind = System.currentTimeMillis();
@@ -52,6 +54,9 @@ public class Router implements Iterator<Node> {
 			if (entity.getEntity().isImmobile()) {
 				return;
 			}
+			if (needStop()) {
+				return;
+			}
 			// 目的地没有变更，则不需要再次寻路
 			if (Position.fromObject(destination, destination.level).equals(lastDestination)) return;
 
@@ -83,6 +88,11 @@ public class Router implements Iterator<Node> {
 
 	public Router setRouteFinder(IRouteFinder routeFinder) {
 		this.routeFinder = routeFinder;
+		return this;
+	}
+
+	public Router setStopDistance(double distance) {
+		this.stopDistanceSq = distance * distance;
 		return this;
 	}
 
@@ -165,5 +175,13 @@ public class Router implements Iterator<Node> {
 
 	public boolean hasRoute() {
 		return !this.nodes.isEmpty();
+	}
+
+	public boolean needStop() {
+		return !ignoreStopDistance && destination != null && stopDistanceSq > 0 && entity.distanceSquared(destination) <= stopDistanceSq;
+	}
+
+	public void setIgnoreStopDistance(boolean ignore) {
+		ignoreStopDistance = ignore;
 	}
 }

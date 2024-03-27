@@ -11,14 +11,14 @@ import java.util.*;
 public class WalkableIterator implements Iterator<Block> {
 
     private final Level level;
-    private final int maxDistance;
+    private final int maxDistanceSq;
     private final double width;
 
     private boolean end = false;
 
     private Block currentBlockObject;
 
-    private double currentDistance;
+    private double currentDistanceSq;
     private final Vector3 startPosition;
     private Vector3 startPositionLeft;
     private Vector3 startPositionRight;
@@ -35,8 +35,8 @@ public class WalkableIterator implements Iterator<Block> {
         this.entity = entity;
         this.level = level;
         this.width = width;
-        this.maxDistance = maxDistance == 0 ? 120 : maxDistance;
-        this.currentDistance = 0;
+        this.maxDistanceSq = maxDistance == 0 ? 120 * 120 : maxDistance * maxDistance;
+        this.currentDistanceSq = 0;
         this.direction = direction.normalize();
         this.currentPosition = start;
         //this.currentPositionLeft = this.getStartPos(start, -width / 2);
@@ -69,7 +69,7 @@ public class WalkableIterator implements Iterator<Block> {
     }
 
     private void scan() {
-        if (this.maxDistance != 0 && this.currentDistance > this.maxDistance) {
+        if (this.maxDistanceSq != 0 && this.currentDistanceSq > this.maxDistanceSq) {
             this.end = true;
             return;
         }
@@ -119,8 +119,8 @@ public class WalkableIterator implements Iterator<Block> {
             }
             this.currentPositionRight = next;*/
 
-            this.currentDistance = this.currentPosition.distance(this.startPosition);
-            if (this.maxDistance > 0 && this.currentDistance > this.maxDistance) this.end = true;
+            this.currentDistanceSq = this.currentPosition.distanceSquared(this.startPosition);
+            if (this.maxDistanceSq > 0 && this.currentDistanceSq > this.maxDistanceSq) this.end = true;
         } while (!this.end);
     }
 

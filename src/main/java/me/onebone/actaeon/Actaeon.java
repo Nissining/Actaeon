@@ -8,8 +8,6 @@ import cn.nukkit.event.Listener;
 import cn.nukkit.event.player.PlayerInteractEvent;
 import cn.nukkit.plugin.PluginBase;
 import me.onebone.actaeon.entity.MovingEntity;
-import me.onebone.actaeon.entity.monster.Zombie;
-import me.onebone.actaeon.entity.monster.evoker.EntityEvoker;
 
 public class Actaeon extends PluginBase implements Listener {
 
@@ -31,8 +29,8 @@ public class Actaeon extends PluginBase implements Listener {
 		//this.registerEntity("Cow", Cow.class, Cow::new);
 		//this.registerEntity("Chicken", Chicken.class, Chicken::new);
 		//this.registerEntity("Pig", Pig.class, Pig::new);
-		this.registerEntity("Zombie", Zombie.class, Zombie::new);
-		this.registerEntity("Evoker", EntityEvoker.class, EntityEvoker::new);
+		//this.registerEntity("Zombie", Zombie.class, Zombie::new);
+		//this.registerEntity("Evoker", EntityEvoker.class, EntityEvoker::new);
 
 		//this.getServer().getPluginManager().registerEvents(this, this);
 	}

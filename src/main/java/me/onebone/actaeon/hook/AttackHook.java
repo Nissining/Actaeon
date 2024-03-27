@@ -24,7 +24,7 @@ public class AttackHook extends MovingEntityHook {
 
     private final Entity parentEntity;
     private long lastAttack = 0;
-    private final double attackDistance;
+    private final double attackDistanceSq;
     private long coolDown;
     private final int effectual;  //攻击成功率 0~10
     private final double viewAngle;  //机器人视野范围（攻击有效范围）
@@ -52,7 +52,7 @@ public class AttackHook extends MovingEntityHook {
     public AttackHook(IMovingEntity bot, Entity parentEntity, double attackDistance, Supplier<Float> damage, long coolDown, int effectual, double viewAngle) {
         super(bot);
         this.parentEntity = parentEntity;
-        this.attackDistance = attackDistance;
+        this.attackDistanceSq = attackDistance * attackDistance;
         this.damage = damage;
         this.coolDown = coolDown;
         this.effectual = effectual;
@@ -89,6 +89,11 @@ public class AttackHook extends MovingEntityHook {
         return lastAttack;
     }
 
+    public AttackHook setLastAttack(long lastAttack) {
+        this.lastAttack = lastAttack;
+        return this;
+    }
+
     public boolean canJump() {
         return jump;
     }
@@ -107,7 +112,7 @@ public class AttackHook extends MovingEntityHook {
     public void onUpdate(int tick) {
         if (this.entity.getHate() != null) {
             Entity hate = this.entity.getHate();
-            if (this.entity.distance(hate) <= this.attackDistance) {
+            if (this.entity.distanceSquared(hate) <= this.attackDistanceSq) {
                 if (System.currentTimeMillis() - this.lastAttack > this.coolDown) {
                     if (this.entity.getTask() == null) {
                         this.entity.updateBotTask(this.attackTaskSupplier.get(hate));

@@ -11,21 +11,28 @@ import me.onebone.actaeon.hook.MovingEntityHook;
  * ===============
  */
 public class EvokerAttackHook extends MovingEntityHook {
+    private Entity target;
+    private int nextAttackTick;
 
-    private long lastAttack = 0;
-    private final double attackDistance;
-    private long coolDown;
+    private final double attackDistanceSq;
+    private int coolDownTicks;
     private float damage;
+    private float knockBack = Float.NaN;
 
     public EvokerAttackHook(MovingEntity entity) {
-        this(entity, 10, 6, 5000);
+        this(entity, 20, 6, 20 * 5);
     }
 
-    public EvokerAttackHook(MovingEntity bot, double attackDistance, float damage, long coolDown) {
+    public EvokerAttackHook(MovingEntity bot, double attackDistance, float damage, int coolDownTicks) {
         super(bot);
-        this.attackDistance = attackDistance;
+        this.attackDistanceSq = attackDistance * attackDistance;
         this.damage = damage;
-        this.coolDown = coolDown;
+        this.coolDownTicks = coolDownTicks;
+    }
+
+    public EvokerAttackHook setKnockBack(float knockBack) {
+        this.knockBack = knockBack;
+        return this;
     }
 
     public float getDamage() {
@@ -36,29 +43,48 @@ public class EvokerAttackHook extends MovingEntityHook {
         this.damage = damage;
     }
 
-    public long getCoolDown() {
-        return coolDown;
+    public int getCoolDownTicks() {
+        return coolDownTicks;
     }
 
-    public void setCoolDown(long coolDown) {
-        this.coolDown = coolDown;
+    public EvokerAttackHook setCoolDownTicks(int coolDownTicks) {
+        this.coolDownTicks = coolDownTicks;
+        return this;
     }
 
-    public long getLastAttack() {
-        return lastAttack;
+    public long getNextAttackTick() {
+        return nextAttackTick;
+    }
+
+    public EvokerAttackHook setNextAttackTick(int nextAttackTick) {
+        this.nextAttackTick = nextAttackTick;
+        return this;
     }
 
     @Override
     public void onUpdate(int tick) {
         if (this.entity.getHate() != null) {
             Entity hate = this.entity.getHate();
-            if (this.entity.distance(hate) <= this.attackDistance) {
-                if (System.currentTimeMillis() - this.lastAttack > this.coolDown) {
+            if (this.entity.distanceSquared(hate) <= this.attackDistanceSq) {
+                entity.setLookAtFront(false);
+                entity.getEntity().lookAt((target != null ? target : hate).getEyePosition());
+
+                int now = entity.getEntity().getServer().getTick();
+                if (now >= this.nextAttackTick) {
                     if (this.entity.getTask() == null) {
-                        this.entity.updateBotTask(new EvokerAttackTask(this.entity, hate, this.damage));
+                        target = hate;
+                        this.entity.updateBotTask(new EvokerAttackTask(this.entity, hate, this.damage) {
+                            @Override
+                            public void forceStop() {
+                                super.forceStop();
+                                target = null;
+                            }
+                        }.setKnockBack(knockBack));
                     }
-                    this.lastAttack = System.currentTimeMillis();
+                    this.nextAttackTick = now + coolDownTicks + 20 * 2;
                 }
+            } else {
+                entity.setLookAtFront(true);
             }
         }
     }

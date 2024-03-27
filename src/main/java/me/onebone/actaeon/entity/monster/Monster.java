@@ -28,6 +28,10 @@ abstract public class Monster extends MovingEntity implements EntityAgeable {
 
 	@Override
 	public void spawnTo(Player player){
+		if (this.hasSpawned.containsKey(player.getLoaderId())) {
+			return;
+		}
+
 		AddEntityPacket pk = new AddEntityPacket();
 		pk.type = this.getNetworkId();
 		pk.entityUniqueId = this.getId();

@@ -2,19 +2,19 @@ package me.onebone.actaeon.entity.monster.evoker;
 
 import cn.nukkit.Player;
 import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityFullNames;
 import cn.nukkit.entity.EntityID;
+import cn.nukkit.entity.EntityLiving;
 import cn.nukkit.entity.data.IntEntityData;
+import cn.nukkit.entity.data.LongEntityData;
 import cn.nukkit.event.entity.EntityDamageByChildEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
-import cn.nukkit.level.ParticleEffect;
+import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.level.particle.CriticalParticle;
-import cn.nukkit.level.sound.SoundEnum;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.AddEntityPacket;
-
-import java.util.Random;
-import java.util.concurrent.ThreadLocalRandom;
+import cn.nukkit.network.protocol.EntityEventPacket;
+import cn.nukkit.network.protocol.LevelSoundEventPacket;
 
 /**
  * net.easecation.ecgrave.entity
@@ -30,16 +30,44 @@ public class EntityEvocationFang extends Entity {
 
     private final Entity owner;
     private final float damage;
+    private float knockBack = Float.NaN;
+
+    private int limitedLifeTicks;
 
     public EntityEvocationFang(FullChunk chunk, CompoundTag nbt, Entity owner) {
         super(chunk, nbt);
         this.owner = owner;
-        this.setDataProperty(new IntEntityData(Entity.DATA_LIMITED_LIFE, 40), false);
+        if (owner != null) {
+            this.setDataProperty(new LongEntityData(Entity.DATA_OWNER_EID, owner.getId()), false);
+        }
+        limitedLifeTicks = 22;
+        this.setDataProperty(new IntEntityData(Entity.DATA_LIMITED_LIFE, limitedLifeTicks), false);
         if (nbt.contains("Damage")) {
             this.damage = nbt.getFloat("Damage");
         } else {
             this.damage = 6f;
         }
+        this.fireProof = true;
+    }
+
+    public EntityEvocationFang setKnockBack(float knockBack) {
+        this.knockBack = knockBack;
+        return this;
+    }
+
+    @Override
+    public float getWidth() {
+        return 1;
+    }
+
+    @Override
+    public float getHeight() {
+        return 0.8f;
+    }
+
+    @Override
+    public float getEyeHeight() {
+        return 0.4f;
     }
 
     @Override
@@ -57,9 +85,6 @@ public class EntityEvocationFang extends Entity {
         pk.x = (float) this.x;
         pk.y = (float) this.y;
         pk.z = (float) this.z;
-        pk.speedX = (float) this.motionX;
-        pk.speedY = (float) this.motionY;
-        pk.speedZ = (float) this.motionZ;
         pk.metadata = this.dataProperties;
         player.dataPacket(pk);
         super.spawnTo(player);
@@ -72,13 +97,22 @@ public class EntityEvocationFang extends Entity {
 
     @Override
     public boolean onUpdate(int currentTick) {
-        super.onUpdate(currentTick);
-        if (this.isAlive()) {
-            if (this.age == this.getDataPropertyInt(Entity.DATA_LIMITED_LIFE) - 20) {
-                this.getLevel().addSound(this, SoundEnum.MOB_EVOCATION_FANGS_ATTACK);
-            } else if (this.age >= this.getDataPropertyInt(Entity.DATA_LIMITED_LIFE) - 10) {
-                Entity[] entities = this.getLevel().getNearbyEntities(this.getBoundingBox().grow(0.6, 2, 0.6));
-                for (Entity entity: entities) {
+        boolean hasUpdate = super.onUpdate(currentTick);
+
+        if ((limitedLifeTicks-- & 1) == 1) {
+            setDataProperty(new IntEntityData(Entity.DATA_LIMITED_LIFE, limitedLifeTicks));
+
+            if (limitedLifeTicks == 20) {
+                Entity[] entities = this.getLevel().getNearbyEntities(this.getBoundingBox().grow(0.2, 0, 0.2), this);
+                for (Entity entity : entities) {
+                    if (!(entity instanceof EntityLiving)) {
+                        continue;
+                    }
+
+                    if (entity == this.owner) {
+                        continue;
+                    }
+
                     if (!entity.isAlive()) {
                         continue;
                     }
@@ -90,21 +124,37 @@ public class EntityEvocationFang extends Entity {
                         }
                     }
 
-                    EntityDamageByChildEntityEvent event = new EntityDamageByChildEntityEvent(this.owner, this, entity, EntityDamageEvent.DamageCause.ENTITY_ATTACK, this.damage);
-                    event.setKnockBack(0);
-                    if (entity != this.owner) {
-                        entity.attack(event);
+                    EntityDamageByChildEntityEvent event = new EntityDamageByChildEntityEvent(this.owner, this, entity, DamageCause.MAGIC, this.damage);
+                    if (!Float.isNaN(knockBack)) {
+                        event.setKnockBack(knockBack);
                     }
+                    entity.attack(event);
                 }
-                this.getLevel().addParticleEffect(this.add(0, 2, 0), ParticleEffect.EVOCATION_FANG);
-                Random random = ThreadLocalRandom.current();
-                for (int i = 0; i < 5; i++) {
-                    this.getLevel().addParticle(new CriticalParticle(this.add(random.nextFloat() - 0.5f, 1 + random.nextFloat() * 1.2f, random.nextFloat() - 0.5f)));
+
+                broadcastEntityEvent(EntityEventPacket.ARM_SWING);
+
+                if (owner != null) {
+                    level.addLevelSoundEvent(getEyePosition(), LevelSoundEventPacket.SOUND_THROW, EntityFullNames.EVOCATION_FANG);
                 }
-                this.kill();
+                level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_FANG, EntityFullNames.EVOCATION_FANG);
+            } else if (limitedLifeTicks <= 0) {
+                limitedLifeTicks = -1;
+                setDataProperty(new IntEntityData(Entity.DATA_LIMITED_LIFE, limitedLifeTicks));
+                close();
+                return false;
             }
         }
 
-        return this.isAlive();
+        return hasUpdate;
+    }
+
+    @Override
+    public boolean canCollide() {
+        return false;
+    }
+
+    @Override
+    public boolean canCollideWith(Entity entity) {
+        return false;
     }
 }

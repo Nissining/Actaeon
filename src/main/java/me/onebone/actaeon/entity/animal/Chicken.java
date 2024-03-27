@@ -1,12 +1,16 @@
 package me.onebone.actaeon.entity.animal;
 
+import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityAgeable;
 import cn.nukkit.entity.EntityID;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.tag.CompoundTag;
 import me.onebone.actaeon.entity.Fallable;
 import me.onebone.actaeon.target.AreaPlayerHoldTargetFinder;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Chicken extends Animal implements EntityAgeable, Fallable{
 	public static final int NETWORK_ID = EntityID.CHICKEN;
@@ -18,7 +22,7 @@ public class Chicken extends Animal implements EntityAgeable, Fallable{
 
 	@Override
 	public float getWidth(){
-		return 0.4f;
+		return 0.6f;
 	}
 
 	@Override
@@ -27,11 +31,8 @@ public class Chicken extends Animal implements EntityAgeable, Fallable{
 	}
 
 	@Override
-	public float getHeight(){
-		if (isBaby()){
-			return 0.51f;
-		}
-		return 0.7f;
+	public float getHeight() {
+		return 0.8f;
 	}
 
 	@Override
@@ -43,13 +44,21 @@ public class Chicken extends Animal implements EntityAgeable, Fallable{
 	}
 
 	@Override
-	public Item[] getDrops(){
-		return new Item[]{Item.get(Item.CHICKEN), Item.get(Item.FEATHER)};
+	protected double getStepHeight() {
+		return 1;
 	}
 
 	@Override
-	public boolean entityBaseTick(int tickDiff){
-		return super.entityBaseTick(tickDiff);
+	public Vector3f getMountedOffset(Entity entity) {
+		return new Vector3f(0, 0.4f + entity.getRidingOffset(), 0);
+	}
+
+	@Override
+	public Item[] getDrops(){
+		return new Item[]{
+				Item.get(isOnFire() ? Item.COOKED_CHICKEN : Item.CHICKEN),
+				Item.get(Item.FEATHER, 0, ThreadLocalRandom.current().nextInt(3)),
+		};
 	}
 
 	@Override
@@ -61,10 +70,5 @@ public class Chicken extends Animal implements EntityAgeable, Fallable{
 	protected void initEntity(){
 		super.initEntity();
 		setMaxHealth(4);
-	}
-
-	@Override
-	public boolean isBaby(){
-		return false;
 	}
 }

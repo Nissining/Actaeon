@@ -1,14 +1,14 @@
 package me.onebone.actaeon.entity.animal;
 
+import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityAgeable;
 import cn.nukkit.entity.EntityID;
-import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.tag.CompoundTag;
 import me.onebone.actaeon.target.AreaPlayerHoldTargetFinder;
 
-import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Cow extends Animal implements EntityAgeable{
@@ -31,9 +31,6 @@ public class Cow extends Animal implements EntityAgeable{
 
 	@Override
 	public float getHeight(){
-		if (isBaby()) {
-			return 0.65f;
-		}
 		return 1.3f;
 	}
 
@@ -46,26 +43,22 @@ public class Cow extends Animal implements EntityAgeable{
 	}
 
 	@Override
-	public boolean isBaby(){
-		return false;
+	protected double getStepHeight() {
+		return 1;
+	}
+
+	@Override
+	public Vector3f getMountedOffset(Entity entity) {
+		return new Vector3f(0, 1.105f + entity.getRidingOffset(), 0);
 	}
 
 	@Override
 	public Item[] getDrops(){
-		Random random = ThreadLocalRandom.current();
-		Item leather = Item.get(Item.LEATHER, 0, random.nextInt(3));
-		Item meat = Item.get(Item.BEEF, 0, random.nextInt(3) + 1);
-		EntityDamageEvent cause = this.getLastDamageCause();
-		if (cause.getCause() == EntityDamageEvent.DamageCause.FIRE) {
-			meat = Item.get(Item.COOKED_BEEF, 0, random.nextInt(3) + 1);
-		}
-		return new Item[]{leather, meat};
-	}
-
-	@Override
-	public boolean entityBaseTick(int tickDiff){
-
-		return super.entityBaseTick(tickDiff);
+		ThreadLocalRandom random = ThreadLocalRandom.current();
+		return new Item[]{
+				Item.get(isOnFire() ? Item.COOKED_BEEF : Item.BEEF, 0, random.nextInt(1, 4)),
+				Item.get(Item.LEATHER, 0, random.nextInt(3)),
+		};
 	}
 
 	@Override

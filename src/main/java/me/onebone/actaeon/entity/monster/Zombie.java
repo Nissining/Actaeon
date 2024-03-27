@@ -1,11 +1,12 @@
 package me.onebone.actaeon.entity.monster;
 
+import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityAgeable;
 import cn.nukkit.entity.EntityID;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.level.sound.SoundEnum;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.tag.CompoundTag;
 import me.onebone.actaeon.entity.Fallable;
 import me.onebone.actaeon.hook.AttackHook;
@@ -19,6 +20,10 @@ public class Zombie extends Monster implements EntityAgeable, Fallable {
 	public Zombie(FullChunk chunk, CompoundTag nbt) {
 		super(chunk, nbt);
 		this.setTargetFinder(new AreaHaterTargetFinder(this, 500, 20000));
+		registerHooks();
+	}
+
+	protected void registerHooks() {
 		this.addHook("attack", new AttackHook(this, this.getAttackDistance(), this::getDamage, 1000, 10, 180));
 	}
 
@@ -43,6 +48,24 @@ public class Zombie extends Monster implements EntityAgeable, Fallable {
 	}
 
 	@Override
+	protected double getStepHeight() {
+		return 1;
+	}
+
+	@Override
+	public float getRidingOffset() {
+		if (getDataFlag(DATA_FLAG_BABY)) {
+			return super.getRidingOffset();
+		}
+		return -0.5f;
+	}
+
+	@Override
+	public Vector3f getMountedOffset(Entity entity) {
+		return new Vector3f(0, 1.1f + entity.getRidingOffset(), -0.35f);
+	}
+
+	@Override
 	public Item[] getDrops(){
 		ThreadLocalRandom random = ThreadLocalRandom.current();
 		return new Item[]{
@@ -63,20 +86,6 @@ public class Zombie extends Monster implements EntityAgeable, Fallable {
 	protected void initEntity(){
 		super.initEntity();
 		setMaxHealth(20);
-	}
-
-	@Override
-	public boolean isBaby(){
-		return false;
-	}
-
-	@Override
-	public boolean onUpdate(int currentTick) {
-		boolean update = super.onUpdate(currentTick);
-		if (ThreadLocalRandom.current().nextInt(200) == 0) {
-			this.getLevel().addSound(this, SoundEnum.MOB_ZOMBIE_SAY);
-		}
-		return update;
 	}
 
 	@Override

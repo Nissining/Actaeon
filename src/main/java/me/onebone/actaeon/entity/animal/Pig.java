@@ -1,11 +1,15 @@
 package me.onebone.actaeon.entity.animal;
 
+import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityAgeable;
 import cn.nukkit.entity.EntityID;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
+import cn.nukkit.math.Vector3f;
 import cn.nukkit.nbt.tag.CompoundTag;
 import me.onebone.actaeon.target.AreaPlayerHoldTargetFinder;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Pig extends Animal implements EntityAgeable{
 	public static final int NETWORK_ID = EntityID.PIG;
@@ -22,9 +26,6 @@ public class Pig extends Animal implements EntityAgeable{
 
 	@Override
 	public float getHeight() {
-		if (isBaby()) {
-			return 0.9f; // No have information
-		}
 		return 0.9f;
 	}
 
@@ -37,8 +38,13 @@ public class Pig extends Animal implements EntityAgeable{
 	}
 
 	@Override
-	public boolean entityBaseTick(int tickDiff){
-		return super.entityBaseTick(tickDiff);
+	protected double getStepHeight() {
+		return 1;
+	}
+
+	@Override
+	public Vector3f getMountedOffset(Entity entity) {
+		return new Vector3f(0, 0.63f + entity.getRidingOffset(), 0);
 	}
 
 	@Override
@@ -48,7 +54,9 @@ public class Pig extends Animal implements EntityAgeable{
 
 	@Override
 	public Item[] getDrops() {
-		return new Item[]{Item.get(Item.PORKCHOP)};
+		return new Item[]{
+				Item.get(isOnFire() ? Item.COOKED_PORKCHOP : Item.PORKCHOP, 0, ThreadLocalRandom.current().nextInt(1, 4)),
+		};
 	}
 
 	@Override
@@ -60,10 +68,5 @@ public class Pig extends Animal implements EntityAgeable{
 	protected void initEntity() {
 		super.initEntity();
 		setMaxHealth(10);
-	}
-
-	@Override
-	public boolean isBaby(){
-		return false;
 	}
 }

@@ -22,6 +22,7 @@ import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
+import cn.nukkit.potion.Effect;
 import me.onebone.actaeon.hook.MovingEntityHook;
 import me.onebone.actaeon.inventory.EntityArmorInventory;
 import me.onebone.actaeon.inventory.EntityEquipmentInventory;
@@ -119,12 +120,21 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 
 	public void jump() {
 		if (this.onGround){
-			this.motionY = getJumpPower();
+			this.motionY = getJumpPower() + getJumpBoostPower();
 		}
 	}
 
 	protected float getJumpPower() {
+//		return 0.42f;
 		return 0.35f;
+	}
+
+	public float getJumpBoostPower() {
+		Effect jumpBoost = getEffect(Effect.JUMP_BOOST);
+		if (jumpBoost == null) {
+			return 0;
+		}
+		return 0.1f * (jumpBoost.getAmplifier() + 1);
 	}
 
 	@Override
@@ -177,9 +187,9 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 			hasUpdate = true;
 		}*/
 
-		if (!this.isImmobile()) {
+		if (!isRiding() && !this.isImmobile()) {
 			// 如果未在寻路，并且有寻路路径，则控制实体前往下一个节点
-			if (this.routeLeading && (!this.isKnockback || this.getGravity() == 0) && !this.router.isSearching() && this.router.hasRoute()) { // entity has route to go
+			if (this.routeLeading && (!this.isKnockback || this.getGravity() == 0) && !this.router.isSearching() && this.router.hasRoute() && !router.needStop()) { // entity has route to go
 				hasUpdate = true;
 
 				// 获取下一寻路的节点
@@ -211,11 +221,21 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 							int negZ = vec.z - this.z < 0 ? -1 : 1;
 							int negY = vec.y - this.y < 0 ? -1 : 1;
 
-							this.motionX = Math.min(Math.abs(vec.x - this.x), ratioX * this.getMovementSpeed()) * negX;
-							this.motionZ = Math.min(Math.abs(vec.z - this.z), ratioZ * this.getMovementSpeed()) * negZ;
+							float movementSpeed = this.getMovementSpeed();
+							Effect speed = getEffect(Effect.SPEED);
+							if (speed != null) {
+								movementSpeed += this.getMovementSpeed() * 0.2f * (speed.getAmplifier() + 1);
+							}
+							Effect slowness = getEffect(Effect.SLOWNESS);
+							if (slowness != null) {
+								movementSpeed -= this.getMovementSpeed() * 0.15f * (slowness.getAmplifier() + 1);
+							}
+
+							this.motionX = Math.min(Math.abs(vec.x - this.x), ratioX * movementSpeed) * negX;
+							this.motionZ = Math.min(Math.abs(vec.z - this.z), ratioZ * movementSpeed) * negZ;
 
 							if (this.getGravity() == 0) {
-								this.motionY = Math.min(Math.abs(vec.y - this.y), ratioY * this.getMovementSpeed()) * negY;
+								this.motionY = Math.min(Math.abs(vec.y - this.y), ratioY * movementSpeed) * negY;
 							}
 						}
 						if (this.lookAtFront) {
@@ -249,18 +269,31 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 			if ((this.motionX != 0 || this.motionZ != 0) && this.isCollidedHorizontally){
 				this.jump();
 			}
+
+			Effect levitation = getEffect(Effect.LEVITATION);
+			if (levitation != null) {
+				this.motionY = 0.045f * (levitation.getAmplifier() + 1);
+				resetFallDistance();
+			}
+
 			this.move(this.motionX, this.motionY, this.motionZ);
 
 			this.checkGround();
 			if(!this.onGround){
-				this.motionY -= this.getGravity();
+				float gravity = this.getGravity();
+
+				if (gravity > 0 && hasEffect(Effect.SLOW_FALLING)) {
+					gravity = Math.min(gravity, 0.01f);
+					resetFallDistance();
+				}
+
+				this.motionY -= gravity;
 				//Server.getInstance().getLogger().warning(this.getId() + ": 不在地面, 掉落 motionY=" + this.motionY);
 				hasUpdate = true;
 			} else {
 				this.isKnockback = false;
 			}
 		}
-
 
 		return hasUpdate;
 	}
@@ -306,7 +339,8 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	 * If following distance of target is too far to follow or cannot reach, set target will be the next following target
 	 */
 	public boolean hasSetTarget(){
-		return this.target != null && this.distance(this.target) < this.getRange();
+		double range = this.getRange();
+		return this.target != null && this.distanceSquared(this.target) < range * range;
 	}
 
 	@Override
