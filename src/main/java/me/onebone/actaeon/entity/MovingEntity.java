@@ -8,19 +8,20 @@ import cn.nukkit.entity.attribute.Attribute;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
+import cn.nukkit.event.entity.EntityDamageEvent.DamageModifier;
 import cn.nukkit.inventory.InventoryHolder;
 import cn.nukkit.item.Item;
-import cn.nukkit.item.ItemBlockID;
+import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.FullChunk;
-import cn.nukkit.level.sound.SoundEnum;
 import cn.nukkit.math.AxisAlignedBB;
 import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import cn.nukkit.nbt.NBTIO;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.nbt.tag.ListTag;
+import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
 import cn.nukkit.potion.Effect;
 import me.onebone.actaeon.hook.MovingEntityHook;
@@ -34,7 +35,6 @@ import me.onebone.actaeon.task.MovingEntityTask;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ThreadLocalRandom;
 
 abstract public class MovingEntity extends EntityCreature implements IMovingEntity, InventoryHolder {
 
@@ -420,24 +420,33 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 			return false;
 		}
 
+		int armorDamage = 0;
+
 		if (source.getCause() != EntityDamageEvent.DamageCause.VOID && source.getCause() != DamageCause.SUICIDE && source.getCause() != EntityDamageEvent.DamageCause.CUSTOM && source.getCause() != EntityDamageEvent.DamageCause.SONIC_BOOM && source.getCause() != EntityDamageEvent.DamageCause.HUNGER) {
-			int armorPoints = 0;
+			int armorPoints = getBaseArmorValue();
+			int toughness = 0;
 			int epf = 0;
-//            int toughness = 0;
 
 			EntityArmorInventory armorInventory = this.getArmorInventory();
 			for (Item armor : armorInventory.getContents().values()) {
 				armorPoints += armor.getArmorPoints();
+				toughness += armor.getToughness();
 				epf += calculateEnchantmentProtectionFactor(armor, source);
-				//toughness += armor.getToughness();
 			}
 
 			if (source.canBeReducedByArmor()) {
-				source.setDamage(-source.getFinalDamage() * armorPoints * 0.04f, EntityDamageEvent.DamageModifier.ARMOR);
+				armorDamage = Math.max(1, (int) source.getDamage() / 4);
+
+				armorPoints = Mth.clamp(armorPoints, 0, 20);
+				float damage = source.getFinalDamage();
+				if (level.isNewArmorMechanics()) {
+					source.setDamage(-damage * (Mth.clamp(armorPoints - damage / (2 + toughness / 4f), armorPoints * 0.2f, 20) / 25), DamageModifier.ARMOR);
+				} else {
+					source.setDamage(-damage * (armorPoints / 25f), DamageModifier.ARMOR);
+				}
 			}
 
-			source.setDamage(-source.getFinalDamage() * Math.min(Mth.ceil(Math.min(epf, 25) * ((float) ThreadLocalRandom.current().nextInt(50, 100) / 100)), 20) * 0.04f,
-					EntityDamageEvent.DamageModifier.ARMOR_ENCHANTMENTS);
+			source.setDamage(-source.getFinalDamage() * (Mth.clamp(epf, 0, 20) / 25f), DamageModifier.ARMOR_ENCHANTMENTS);
 
 			source.setDamage(-Math.min(this.getAbsorption(), source.getFinalDamage()), EntityDamageEvent.DamageModifier.ABSORPTION);
 		}
@@ -456,7 +465,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 			}
 
 			for (int slot = 0; slot < 4; slot++) {
-				Item armor = damageArmor(armorInventory.getItem(slot), source.getCause(), damager);
+				Item armor = damageArmor(armorInventory.getItem(slot), armorDamage, source.getCause(), damager);
 				armorInventory.setItem(slot, armor, armor.getId() != BlockID.AIR);
 			}
 
@@ -469,18 +478,20 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	@Override
 	public void setOnFire(int seconds) {
 		int level = 0;
-
 		for (Item armor : this.getArmorInventory().getContents().values()) {
-			Enchantment fireProtection = armor.getEnchantment(Enchantment.FIRE_PROTECTION);
-
-			if (fireProtection != null && fireProtection.getLevel() > 0) {
-				level = Math.max(level, fireProtection.getLevel());
-			}
+			level += armor.getEnchantmentLevel(Enchantment.FIRE_PROTECTION);
 		}
 
-		seconds = (int) (seconds * (1 - level * 0.15));
+		int ticks = (int) (seconds * 20 * (level * -0.15 + 1));
 
-		super.setOnFire(seconds);
+		if (ticks > 0 && (hasEffect(Effect.FIRE_RESISTANCE) || !isAlive())) {
+			extinguish();
+			return;
+		}
+
+		if (ticks > fireTicks) {
+			fireTicks = ticks;
+		}
 	}
 
 	protected int calculateEnchantmentProtectionFactor(Item item, EntityDamageEvent source) {
@@ -497,20 +508,22 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 		return epf;
 	}
 
-	protected Item damageArmor(Item armor, DamageCause cause, Entity damager) {
+	protected Item damageArmor(Item armor, int armorDamage, DamageCause cause, Entity damager) {
 		if (armor.hasEnchantments()) {
 			if (damager != null) {
 				for (Enchantment enchantment : armor.getEnchantments()) {
-					enchantment.doPostAttack(damager, this, cause);
+					enchantment.doPostAttack(armor, damager, this, cause);
+				}
+
+				if (armor.getDamage() > armor.getMaxDurability()) {
+					level.addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
+					return Items.air();
 				}
 			}
+		}
 
-			Enchantment durability = armor.getEnchantment(Enchantment.UNBREAKING);
-			if (durability != null
-					&& durability.getLevel() > 0
-					&& (100 / (durability.getLevel() + 1)) <= ThreadLocalRandom.current().nextInt(100)) {
-				return armor;
-			}
+		if (armorDamage == 0) {
+			return armor;
 		}
 
 		switch (cause) {
@@ -531,14 +544,21 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 				return armor;
 		}
 
-		if (armor.isUnbreakable() || armor.getId() == Item.SKULL || armor.getId() == ItemBlockID.CARVED_PUMPKIN || armor.getId() == Item.ELYTRA || armor.getMaxDurability() < 0) {
+		if (!armor.isArmor() || armor.getId() == Item.ELYTRA) {
 			return armor;
 		}
 
-		armor.setDamage(armor.getDamage() + 1);
+		if (armor.isFireResistant() && (cause == DamageCause.FIRE || cause == DamageCause.LAVA || cause == DamageCause.MAGMA || cause == DamageCause.CAMPFIRE || cause == DamageCause.SOUL_CAMPFIRE)) {
+			return armor;
+		}
 
-		if (armor.getDamage() >= armor.getMaxDurability()) {
-			getLevel().addSound(this, SoundEnum.RANDOM_BREAK);
+		int itemDamaged = armor.hurtAndBreak(armorDamage);
+		if (itemDamaged == 0) {
+			return armor;
+		}
+
+		if (itemDamaged < 0) {
+			getLevel().addLevelSoundEvent(this, LevelSoundEventPacket.SOUND_BREAK);
 			return Item.get(BlockID.AIR, 0, 0);
 		}
 
@@ -563,9 +583,19 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 		super.knockBack(attacker, damage, x, z, base);
 	}
 
+	@Override
 	public void knockBack(Entity attacker, double damage, double x, double z, double baseH, double baseV) {
 		this.isKnockback = true;
 		super.knockBack(attacker, damage, x, z, baseH, baseV);
+	}
+
+	@Override
+	protected float getKnockbackResistance() {
+		float total = 0;
+		for (Item armor : armorInventory.getContents().values()) {
+			total += armor.getKnockbackResistance();
+		}
+		return total;
 	}
 
     public Router getRouter() {

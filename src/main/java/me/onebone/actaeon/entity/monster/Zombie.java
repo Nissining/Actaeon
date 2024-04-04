@@ -100,4 +100,9 @@ public class Zombie extends Monster implements EntityAgeable, Fallable {
 		}
 		source.getEntity().setOnFire(2 * difficulty);
 	}
+
+	@Override
+	public int getBaseArmorValue() {
+		return 2;
+	}
 }
