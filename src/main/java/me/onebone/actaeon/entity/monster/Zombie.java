@@ -3,6 +3,7 @@ package me.onebone.actaeon.entity.monster;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityAgeable;
 import cn.nukkit.entity.EntityID;
+import cn.nukkit.entity.mob.EntityZombie;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.item.Item;
 import cn.nukkit.level.format.FullChunk;
@@ -85,6 +86,9 @@ public class Zombie extends Monster implements EntityAgeable, Fallable {
 	@Override
 	protected void initEntity(){
 		super.initEntity();
+
+		dataProperties.putShort(DATA_ZOMBIE_TYPE, EntityZombie.ZOMBIE_TYPE_DEFAULT);
+
 		setMaxHealth(20);
 	}
 

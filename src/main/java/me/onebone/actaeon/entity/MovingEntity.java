@@ -376,7 +376,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 		pk0.entries = new Attribute[]{
 				Attribute.getAttribute(Attribute.HEALTH).setMaxValue(this.getMaxHealth()).setValue(this.getHealth()),
 		};
-		this.getLevel().addChunkPacket(this.getChunkX(), this.getChunkZ(), pk0);
+		Server.broadcastPacket(this.getViewers().values(), pk0);
 		return true;
 	}
 
@@ -389,7 +389,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 		pk0.entries = new Attribute[]{
 				Attribute.getAttribute(Attribute.HEALTH).setMaxValue(this.getMaxHealth()).setValue(this.getHealth()),
 		};
-		this.getLevel().addChunkPacket(this.getChunkX(), this.getChunkZ(), pk0);
+		Server.broadcastPacket(this.getViewers().values(), pk0);
 	}
 
 	@Override
@@ -423,6 +423,19 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 		int armorDamage = 0;
 
 		if (source.getCause() != EntityDamageEvent.DamageCause.VOID && source.getCause() != DamageCause.SUICIDE && source.getCause() != EntityDamageEvent.DamageCause.CUSTOM && source.getCause() != EntityDamageEvent.DamageCause.SONIC_BOOM && source.getCause() != EntityDamageEvent.DamageCause.HUNGER) {
+			int breach = 0;
+			if (source instanceof EntityDamageByEntityEvent damageByEntityEvent) {
+				Enchantment[] enchantments = damageByEntityEvent.getWeaponEnchantments();
+				if (enchantments != null) {
+					for (Enchantment enchantment : enchantments) {
+						if (enchantment.getId() == Enchantment.BREACH) {
+							breach = enchantment.getLevel();
+							break;
+						}
+					}
+				}
+			}
+
 			int armorPoints = getBaseArmorValue();
 			int toughness = 0;
 			int epf = 0;
@@ -439,11 +452,16 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 
 				armorPoints = Mth.clamp(armorPoints, 0, 20);
 				float damage = source.getFinalDamage();
+				float armorFraction;
 				if (level.isNewArmorMechanics()) {
-					source.setDamage(-damage * (Mth.clamp(armorPoints - damage / (2 + toughness / 4f), armorPoints * 0.2f, 20) / 25), DamageModifier.ARMOR);
+					armorFraction = Mth.clamp(armorPoints - damage / (2 + toughness / 4f), armorPoints * 0.2f, 20) / 25;
 				} else {
-					source.setDamage(-damage * (armorPoints / 25f), DamageModifier.ARMOR);
+					armorFraction = armorPoints / 25f;
 				}
+				if (breach > 0) {
+					armorFraction = Math.max(armorFraction - breach * 0.15f, 0);
+				}
+				source.setDamage(-damage * armorFraction, DamageModifier.ARMOR);
 			}
 
 			source.setDamage(-source.getFinalDamage() * (Mth.clamp(epf, 0, 20) / 25f), DamageModifier.ARMOR_ENCHANTMENTS);
