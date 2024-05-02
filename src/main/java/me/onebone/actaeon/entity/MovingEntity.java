@@ -246,8 +246,8 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 				}
 			}
 
-			for (Entity entity: this.getLevel().getCollidingEntities(this.boundingBox)) {
-				if (this.canCollide() && this.canCollideWith(entity)) {
+			for (Entity entity : this.getLevel().getCollidingEntities(this.boundingBox, this)) {
+				if (entity.canCollide() /*&& entity.canCollideWith(this)*/) {
 					if (entity instanceof EntityHuman) {
 						this.onCollideWithPlayer((EntityHuman) entity);
 						// 如果 collidePlayerToMove > 0，则应用运动向量来推动玩家
