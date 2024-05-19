@@ -1,5 +1,6 @@
 package me.onebone.actaeon.entity.monster;
 
+import cn.nukkit.Difficulty;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.entity.EntityAgeable;
 import cn.nukkit.entity.EntityID;
@@ -98,11 +99,13 @@ public class Zombie extends Monster implements EntityAgeable, Fallable {
 			return;
 		}
 		int difficulty = server.getDifficulty();
-		ThreadLocalRandom random = ThreadLocalRandom.current();
-		if (random.nextInt(10) >= difficulty * 3) {
+		if (difficulty < Difficulty.NORMAL.ordinal()) {
 			return;
 		}
-		source.getEntity().setOnFire(2 * difficulty);
+		if (!getEquipmentInventory().getItemInHand().isNull()) {
+			return;
+		}
+		source.getEntity().setOnFire(2);
 	}
 
 	@Override
