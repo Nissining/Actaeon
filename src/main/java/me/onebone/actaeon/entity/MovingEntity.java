@@ -665,5 +665,9 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	public double getEntityCollisionFactor(Entity entity) {
 		return 0.2f;
 	}
-}
 
+	@Override
+	public boolean canDisableShield() {
+		return equipmentInventory.getItemInHand().isAxe();
+	}
+}
