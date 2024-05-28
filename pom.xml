@@ -6,6 +6,11 @@
   <artifactId>Actaeon</artifactId>
   <version>1.0</version>
   <packaging>jar</packaging>
+  <parent>
+    <groupId>net.easecation</groupId>
+    <artifactId>easecation-root</artifactId>
+    <version>1.0.0</version>
+  </parent>
 
   <properties>
     <maven.compiler.source>17</maven.compiler.source>
@@ -41,6 +46,18 @@
     <defaultGoal>clean package</defaultGoal>
     <finalName>${project.artifactId}</finalName>
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
