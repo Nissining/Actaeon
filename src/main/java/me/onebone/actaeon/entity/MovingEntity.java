@@ -13,6 +13,7 @@ import cn.nukkit.inventory.InventoryHolder;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
 import cn.nukkit.item.enchantment.Enchantment;
+import cn.nukkit.level.Level;
 import cn.nukkit.level.Position;
 import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.math.AxisAlignedBB;
@@ -279,7 +280,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 			this.move(this.motionX, this.motionY, this.motionZ);
 
 			this.checkGround();
-			if(!this.onGround){
+			if (!this.onGround) {
 				float gravity = this.getGravity();
 
 				if (gravity > 0 && hasEffect(Effect.SLOW_FALLING)) {
@@ -356,9 +357,9 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	private void checkGround(){
 		AxisAlignedBB[] list = this.level.getCollisionCubes(this, this.level.getTickRate() > 1 ? this.boundingBox.getOffsetBoundingBox(0, -1, 0) : this.boundingBox.addCoord(0, -1, 0), false);
 
-		double maxY = 0;
-		for(AxisAlignedBB bb : list){
-			if(bb.getMaxY() > maxY){
+		double maxY = Level.MIN_Y;
+		for (AxisAlignedBB bb : list) {
+			if (bb.getMaxY() > maxY) {
 				maxY = bb.getMaxY();
 			}
 		}
