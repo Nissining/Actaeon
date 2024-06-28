@@ -403,8 +403,11 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	@Override
 	public void saveNBT() {
 		super.saveNBT();
-		this.namedTag.put(TAG_MAINHAND, NBTIO.putItemHelper(this.equipmentInventory.getItemInHand()));
-		this.namedTag.put(TAG_OFFHAND, NBTIO.putItemHelper(this.equipmentInventory.getItemInOffhand()));
+
+		if (this.equipmentInventory != null) {
+			this.namedTag.put(TAG_MAINHAND, NBTIO.putItemHelper(this.equipmentInventory.getItemInHand()));
+			this.namedTag.put(TAG_OFFHAND, NBTIO.putItemHelper(this.equipmentInventory.getItemInOffhand()));
+		}
 
 		if (this.armorInventory != null) {
 			ListTag<CompoundTag> armorTag = new ListTag<>(TAG_ARMOR);
