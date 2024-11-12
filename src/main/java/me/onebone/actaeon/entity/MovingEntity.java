@@ -3,12 +3,16 @@ package me.onebone.actaeon.entity;
 import cn.nukkit.Player;
 import cn.nukkit.Server;
 import cn.nukkit.block.BlockID;
-import cn.nukkit.entity.*;
+import cn.nukkit.entity.Entity;
+import cn.nukkit.entity.EntityCreature;
+import cn.nukkit.entity.EntityHuman;
+import cn.nukkit.entity.EntityLiving;
 import cn.nukkit.entity.attribute.Attribute;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageCause;
 import cn.nukkit.event.entity.EntityDamageEvent.DamageModifier;
+import cn.nukkit.inventory.ArmorInventory;
 import cn.nukkit.inventory.InventoryHolder;
 import cn.nukkit.item.Item;
 import cn.nukkit.item.Items;
@@ -26,7 +30,6 @@ import cn.nukkit.network.protocol.LevelSoundEventPacket;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
 import cn.nukkit.potion.Effect;
 import me.onebone.actaeon.hook.MovingEntityHook;
-import me.onebone.actaeon.inventory.EntityArmorInventory;
 import me.onebone.actaeon.inventory.EntityEquipmentInventory;
 import me.onebone.actaeon.route.Node;
 import me.onebone.actaeon.route.Router;
@@ -57,7 +60,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 	protected float collidePlayerToMove = 0f;
 
 	private EntityEquipmentInventory equipmentInventory;
-	private EntityArmorInventory armorInventory;
+	private ArmorInventory armorInventory;
 
 	public MovingEntity(FullChunk chunk, CompoundTag nbt){
 		super(chunk, nbt);
@@ -75,7 +78,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 		this.setDataFlag(DATA_FLAG_GRAVITY, true, false);
 
 		this.equipmentInventory = new EntityEquipmentInventory(this);
-		this.armorInventory = new EntityArmorInventory(this);
+		this.armorInventory = new ArmorInventory(this);
 
 		if (this.namedTag.contains(TAG_MAINHAND)) {
 			this.equipmentInventory.setItemInHand(NBTIO.getItemHelper(this.namedTag.getCompound(TAG_MAINHAND)), true);
@@ -444,7 +447,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 			int toughness = 0;
 			int epf = 0;
 
-			EntityArmorInventory armorInventory = this.getArmorInventory();
+			ArmorInventory armorInventory = this.getArmorInventory();
 			for (Item armor : armorInventory.getContents().values()) {
 				armorPoints += armor.getArmorPoints();
 				toughness += armor.getToughness();
@@ -587,7 +590,7 @@ abstract public class MovingEntity extends EntityCreature implements IMovingEnti
 		return armor;
 	}
 
-	public EntityArmorInventory getArmorInventory() {
+	public ArmorInventory getArmorInventory() {
 		return armorInventory;
 	}
 

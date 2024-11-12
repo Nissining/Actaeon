@@ -1,6 +1,8 @@
 package me.onebone.actaeon.hook;
 
 import cn.nukkit.entity.Entity;
+import lombok.Getter;
+import lombok.Setter;
 import me.onebone.actaeon.entity.IMovingEntity;
 import me.onebone.actaeon.task.AttackTask;
 import me.onebone.actaeon.task.MovingEntityTask;
@@ -23,12 +25,18 @@ public class AttackHook extends MovingEntityHook {
     }
 
     private final Entity parentEntity;
+    @Getter
     private long lastAttack = 0;
     private final double attackDistanceSq;
+    @Setter
+    @Getter
     private long coolDown;
     private final int effectual;  //攻击成功率 0~10
     private final double viewAngle;  //机器人视野范围（攻击有效范围）
+    @Getter
     private boolean jump;  //是否自动跳劈
+    @Getter
+    private boolean autoLookAt;  // 是否在靠近目标时，自动看向玩家（避免贴身时一下打不到）
     private Supplier<Float> damage;
     private final List<AttackTask.AttackCallback> callbacks = new ArrayList<>();
     private AttackTaskSupplier attackTaskSupplier;
@@ -77,18 +85,6 @@ public class AttackHook extends MovingEntityHook {
         this.damage = damage;
     }
 
-    public long getCoolDown() {
-        return coolDown;
-    }
-
-    public void setCoolDown(long coolDown) {
-        this.coolDown = coolDown;
-    }
-
-    public long getLastAttack() {
-        return lastAttack;
-    }
-
     public AttackHook setLastAttack(long lastAttack) {
         this.lastAttack = lastAttack;
         return this;
@@ -103,6 +99,11 @@ public class AttackHook extends MovingEntityHook {
         return this;
     }
 
+    public AttackHook setAutoLookAt(boolean autoLookAt) {
+        this.autoLookAt = autoLookAt;
+        return this;
+    }
+
     public AttackHook addAttackCallback(AttackTask.AttackCallback callback) {
         this.callbacks.add(callback);
         return this;
@@ -113,6 +114,9 @@ public class AttackHook extends MovingEntityHook {
         if (this.entity.getHate() != null) {
             Entity hate = this.entity.getHate();
             if (this.entity.distanceSquared(hate) <= this.attackDistanceSq) {
+                if (this.autoLookAt) {
+                    this.entity.getEntity().lookAt(hate);
+                }
                 if (System.currentTimeMillis() - this.lastAttack > this.coolDown) {
                     if (this.entity.getTask() == null) {
                         this.entity.updateBotTask(this.attackTaskSupplier.get(hate));
