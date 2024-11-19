@@ -50,14 +50,14 @@ public class AttackHook extends MovingEntityHook {
     }
 
     public AttackHook(IMovingEntity bot, double attackDistance, Supplier<Float> damage, long coolDown, int effectual, double viewAngle) {
-        this(bot, null, attackDistance, damage, coolDown, effectual, viewAngle);
+        this(bot, null, attackDistance, damage, coolDown, effectual, viewAngle, false);
     }
 
     public AttackHook(IMovingEntity bot, Entity parentEntity, double attackDistance, float damage, long coolDown, int effectual, double viewAngle) {
-        this(bot, parentEntity, attackDistance, () -> damage, coolDown, effectual, viewAngle);
+        this(bot, parentEntity, attackDistance, () -> damage, coolDown, effectual, viewAngle, false);
     }
 
-    public AttackHook(IMovingEntity bot, Entity parentEntity, double attackDistance, Supplier<Float> damage, long coolDown, int effectual, double viewAngle) {
+    public AttackHook(IMovingEntity bot, Entity parentEntity, double attackDistance, Supplier<Float> damage, long coolDown, int effectual, double viewAngle, boolean checkBlockIterator) {
         super(bot);
         this.parentEntity = parentEntity;
         this.attackDistanceSq = attackDistance * attackDistance;
@@ -65,7 +65,7 @@ public class AttackHook extends MovingEntityHook {
         this.coolDown = coolDown;
         this.effectual = effectual;
         this.viewAngle = viewAngle;
-        this.attackTaskSupplier = (target) -> new AttackTask(this.entity, this.parentEntity, target, this.damage.get(), this.viewAngle, ThreadLocalRandom.current().nextInt(10) < this.effectual, this.callbacks);
+        this.attackTaskSupplier = (target) -> new AttackTask(this.entity, this.parentEntity, target, this.damage.get(), this.viewAngle, ThreadLocalRandom.current().nextInt(10) < this.effectual, checkBlockIterator, this.callbacks);
     }
 
     public AttackHook setAttackTaskSupplier(AttackTaskSupplier attackTaskSupplier) {

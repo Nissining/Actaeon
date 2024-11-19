@@ -6,8 +6,10 @@ import cn.nukkit.event.entity.EntityDamageByChildEntityEvent;
 import cn.nukkit.event.entity.EntityDamageByEntityEvent;
 import cn.nukkit.event.entity.EntityDamageEvent;
 import cn.nukkit.math.Mth;
+import cn.nukkit.math.Vector3;
 import cn.nukkit.network.protocol.EntityEventPacket;
 import me.onebone.actaeon.entity.IMovingEntity;
+import me.onebone.actaeon.utils.Raycaster;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,23 +27,29 @@ public class AttackTask extends MovingEntityTask {
     private final float damage;
     private final double viewAngle;
     private final boolean effectual;
+    private final boolean checkBlockIterator;
     private final List<AttackCallback> callbacks;
 
     public AttackTask(IMovingEntity entity, Entity target, float damage, double viewAngle, boolean effectual) {
-        this(entity, null, target, damage, viewAngle, effectual);
+        this(entity, target, damage, viewAngle, effectual, false);
     }
 
-    public AttackTask(IMovingEntity entity, Entity parentEntity, Entity target, float damage, double viewAngle, boolean effectual) {
-        this(entity, parentEntity, target, damage, viewAngle, effectual, new ArrayList<>());
+    public AttackTask(IMovingEntity entity, Entity target, float damage, double viewAngle, boolean effectual, boolean checkBlockIterator) {
+        this(entity, null, target, damage, viewAngle, effectual, checkBlockIterator);
     }
 
-    public AttackTask(IMovingEntity entity, Entity parentEntity, Entity target, float damage, double viewAngle, boolean effectual, List<AttackCallback> callbacks) {
+    public AttackTask(IMovingEntity entity, Entity parentEntity, Entity target, float damage, double viewAngle, boolean effectual, boolean checkBlockIterator) {
+        this(entity, parentEntity, target, damage, viewAngle, effectual, checkBlockIterator, new ArrayList<>());
+    }
+
+    public AttackTask(IMovingEntity entity, Entity parentEntity, Entity target, float damage, double viewAngle, boolean effectual, boolean checkBlockIterator, List<AttackCallback> callbacks) {
         super(entity);
         this.parentEntity = parentEntity;
         this.target = target;
         this.damage = damage;
         this.viewAngle = viewAngle;
         this.effectual = effectual;
+        this.checkBlockIterator = checkBlockIterator;
         this.callbacks = callbacks;
     }
 
@@ -58,6 +66,17 @@ public class AttackTask extends MovingEntityTask {
             valid = yaw < max - 360 || yaw > min;
         } else {
             valid = yaw < max && yaw > min;
+        }
+        // 通过射线检测是否真的能打到目标
+        if (checkBlockIterator && valid) {
+            Vector3 startPoint = this.entity.getEntity().getPosition().add(0, this.entity.getEntity().getEyeHeight(), 0);
+            Vector3 endPointHead = this.target.add(0, this.target.getEyeHeight(), 0);
+            // 到目标头的射线
+            valid = new Raycaster(this.entity.getLevel(), startPoint, endPointHead).raytraceBlocks().isEmpty();
+            if (!valid) {
+                // 打到脚底
+                valid = new Raycaster(this.entity.getLevel(), startPoint, this.target).raytraceBlocks().isEmpty();
+            }
         }
         if (valid && this.effectual) {
             EntityDamageByEntityEvent event;
