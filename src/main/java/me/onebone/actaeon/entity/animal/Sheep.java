@@ -11,6 +11,8 @@ import me.onebone.actaeon.target.AreaPlayerHoldTargetFinder;
 
 import java.util.concurrent.ThreadLocalRandom;
 
+import static cn.nukkit.GameVersion.*;
+
 public class Sheep extends Animal{
 	public static final int NETWORK_ID = EntityID.SHEEP;
 
@@ -59,7 +61,7 @@ public class Sheep extends Animal{
 	public Item[] getDrops(){
 		return new Item[]{
 				Item.get(isOnFire() ? Item.COOKED_MUTTON : Item.MUTTON, 0, ThreadLocalRandom.current().nextInt(1, 3)),
-				Item.get(Item.WOOL, DyeColor.WHITE.getWoolData()),
+				V1_19_70.isAvailable() ? Item.get(Item.WHITE_WOOL) : Item.get(Item.WOOL, DyeColor.WHITE.getWoolData()),
 		};
 	}
 
