@@ -34,6 +34,9 @@ abstract public class Monster extends MovingEntity implements EntityAgeable {
 
 		AddEntityPacket pk = new AddEntityPacket();
 		pk.type = this.getNetworkId();
+		if (pk.type <= 0 && this.getIdentifier() != null) {
+			pk.id = this.getIdentifier();
+		}
 		pk.entityUniqueId = this.getId();
 		pk.entityRuntimeId = this.getId();
 		pk.x = (float) this.x;
