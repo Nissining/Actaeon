@@ -9,6 +9,9 @@ import cn.nukkit.level.format.FullChunk;
 import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.UpdateAttributesPacket;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import me.onebone.actaeon.entity.MovingEntity;
 
 abstract public class Monster extends MovingEntity implements EntityAgeable {
@@ -49,6 +52,11 @@ abstract public class Monster extends MovingEntity implements EntityAgeable {
 		pk.speedY = (float) this.motionY;
 		pk.speedZ = (float) this.motionZ;
 		pk.metadata = this.dataProperties;
+		Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
+		if (propertyValues != null) {
+			pk.intProperties = propertyValues.left();
+			pk.floatProperties = propertyValues.right();
+		}
 		pk.attributes = new Attribute[]{
 				Attribute.getAttribute(Attribute.HEALTH).setMaxValue(this.getMaxHealth()).setValue(this.getHealth()),
 		};

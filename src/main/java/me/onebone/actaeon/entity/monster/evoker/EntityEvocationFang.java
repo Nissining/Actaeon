@@ -15,6 +15,9 @@ import cn.nukkit.nbt.tag.CompoundTag;
 import cn.nukkit.network.protocol.AddEntityPacket;
 import cn.nukkit.network.protocol.EntityEventPacket;
 import cn.nukkit.network.protocol.LevelSoundEventPacket;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.Int2FloatMap;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
 
 /**
  * net.easecation.ecgrave.entity
@@ -86,6 +89,11 @@ public class EntityEvocationFang extends Entity {
         pk.y = (float) this.y;
         pk.z = (float) this.z;
         pk.metadata = this.dataProperties;
+        Pair<Int2IntMap, Int2FloatMap> propertyValues = getProperties().getValues();
+        if (propertyValues != null) {
+            pk.intProperties = propertyValues.left();
+            pk.floatProperties = propertyValues.right();
+        }
         player.dataPacket(pk);
         super.spawnTo(player);
     }
