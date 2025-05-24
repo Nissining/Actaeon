@@ -3,6 +3,9 @@ package me.onebone.actaeon.target;
 import cn.nukkit.Player;
 import me.onebone.actaeon.entity.IMovingEntity;
 
+/**
+ * 仇恨
+ */
 public class AreaHaterTargetFinder extends TargetFinder {
 
     private final int radius;
@@ -18,7 +21,7 @@ public class AreaHaterTargetFinder extends TargetFinder {
         double nearest = this.radius * this.radius;
 
         for (Player player: this.getEntity().getLevel().getPlayers().values()) {
-            if (!player.isAlive() || player.isCreativeLike()) {
+            if (!player.isAlive() || player.isCreative()) {
                 continue;
             }
 

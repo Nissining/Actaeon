@@ -1,7 +1,6 @@
 package me.onebone.actaeon.target;
 
 import cn.nukkit.entity.Entity;
-import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import me.onebone.actaeon.entity.IMovingEntity;
 
@@ -58,7 +57,7 @@ public class ListHaterTargetFinder extends TargetFinder {
             if (this.getKeepDistance() <= 0) {
                 this.getEntity().setTarget(near.getPosition(), this.getEntity().getName(), this.first);
             } else {
-                double angle = Mth.atan2(this.getEntity().getZ() - near.z, this.getEntity().getX() - near.x);
+                double angle = Math.atan2(this.getEntity().getZ() - near.z, this.getEntity().getX() - near.x);
                 double yaw = (float) ((angle * 180) / Math.PI) - 90;
                 Vector3 target = this.getEntity().getPosition().add(this.getDirectionVector(yaw).multiply(this.getKeepDistance()));
                 this.getEntity().setTarget(target, this.getEntity().getName(), this.first);
@@ -74,9 +73,9 @@ public class ListHaterTargetFinder extends TargetFinder {
     public Vector3 getDirectionVector(double yaw0) {
         double pitch = Math.PI / 2;
         double yaw = (yaw0 + 90) * Math.PI / 180;
-        double x = Mth.sin(pitch) * Mth.cos(yaw);
-        double z = Mth.sin(pitch) * Mth.sin(yaw);
-        double y = Mth.cos(pitch);
+        double x = Math.sin(pitch) * Math.cos(yaw);
+        double z = Math.sin(pitch) * Math.sin(yaw);
+        double y = Math.cos(pitch);
         return (new Vector3(x, y, z)).normalize();
     }
 

@@ -71,7 +71,7 @@ public final class Raycaster {
             AxisAlignedBB entityBoundingBox = entity.getBoundingBox();
             MovingObjectPosition hitResult = entityBoundingBox.calculateIntercept(start, end);
             if (hitResult != null) {
-                hitResult.typeOfHit = MovingObjectPosition.TYPE_ENTITY;
+                hitResult.typeOfHit = 0;
                 hitResult.entityHit = entity;
                 double distanceSq = start.distanceSquared(hitResult.hitVector);
                 targets.add(new RayHitTarget(this, hitResult, distanceSq));

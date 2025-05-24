@@ -1,6 +1,5 @@
 package me.onebone.actaeon.target;
 
-import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 import me.onebone.actaeon.entity.IMovingEntity;
 import me.onebone.actaeon.route.AdvancedRouteFinder;
@@ -9,7 +8,7 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 /**
- * StrollingTargetFinder
+ * StrollingTargetFinder （游荡）
  * ===============
  * author: boybook
  * EaseCation Network Project
@@ -44,8 +43,8 @@ public class StrollingTargetFinder extends TargetFinder {
             Vector3 base = this.entity.getRealTarget() != null ? this.entity.getTarget() : this.getEntity().getPosition();
             //for (int i = 0; i < 5; i++) {
                 float r = random.nextFloat() * 360;
-                double x = this.radius * Mth.cos(Math.toRadians(r));
-                double z = this.radius * Mth.sin(Math.toRadians(r));
+                double x = this.radius * Math.cos(Math.toRadians(r));
+                double z = this.radius * Math.sin(Math.toRadians(r));
                 double y = base.getY();
                 if (this.findHighest >= 0 && this.getEntity().getRouter().getRouteFinder() instanceof AdvancedRouteFinder) {
                     Vector3 highest = AdvancedRouteFinder.getHighestUnder(entity.getEntity(), x, y + 2, z, this.findHighest == 0 ? (int)y + 2 : this.findHighest);
@@ -57,11 +56,7 @@ public class StrollingTargetFinder extends TargetFinder {
                 //break;
             //}
             this.needFind--;
-            if (random.nextInt(10) < 2) {
-                this.entity.getEntity().setSprinting(true);
-            } else {
-                this.entity.getEntity().setSprinting(false);
-            }
+            this.entity.getEntity().setSprinting(random.nextInt(10) < 2);
         } else {
             this.entity.setTarget(null, this.getEntity().getName(), true);
         }

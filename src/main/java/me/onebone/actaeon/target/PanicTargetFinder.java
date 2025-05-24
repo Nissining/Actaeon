@@ -6,6 +6,9 @@ import me.onebone.actaeon.entity.IMovingEntity;
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
+/**
+ * 逃跑
+ */
 public class PanicTargetFinder extends TargetFinder {
 
 	private final double range;

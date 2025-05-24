@@ -3,7 +3,6 @@ package me.onebone.actaeon.utils;
 import cn.nukkit.block.Block;
 import cn.nukkit.level.Level;
 import cn.nukkit.level.MovingObjectPosition;
-import cn.nukkit.math.Mth;
 import cn.nukkit.math.Vector3;
 
 import java.util.Iterator;
@@ -16,18 +15,19 @@ public class BlockClip {
     }
 
     public static Optional<MovingObjectPosition> clip(Level level, Vector3 startVec, Vector3 endVec, boolean liquid, boolean ignoreBarrier, int blockX, int blockY, int blockZ) {
-        MovingObjectPosition hitResult;
+        MovingObjectPosition hitResult = null;
         if (liquid) {
-            Block extraBlock = level.getExtraBlock(blockX, blockY, blockZ, false);
+            Block extraBlock = level.getBlock(blockX, blockY, blockZ, false);
             if (extraBlock.isLiquid()) {
-                hitResult = extraBlock.clip(startVec, endVec, extraBlock::getCollisionBoundingBox);
+                // TODO 顺着水流往上爬
+//                hitResult = extraBlock.clip(startVec, endVec, extraBlock::getCollisionBoundingBox);
             } else if (!extraBlock.isAir()) {
                 hitResult = extraBlock.calculateIntercept(startVec, endVec);
             } else {
                 Block block = level.getBlock(blockX, blockY, blockZ, false);
                 if (block.isLiquid()) {
-                    hitResult = block.clip(startVec, endVec, block::getCollisionBoundingBox);
-                } else if (ignoreBarrier && block.is(Block.BARRIER)) {
+//                    hitResult = block.clip(startVec, endVec, block::getCollisionBoundingBox);
+                } else if (ignoreBarrier && block.getId() == Block.BARRIER) {
                     hitResult = null;
                 } else {
                     hitResult = block.calculateIntercept(startVec, endVec);
@@ -35,7 +35,7 @@ public class BlockClip {
             }
         } else {
             Block block = level.getBlock(blockX, blockY, blockZ, false);
-            if (ignoreBarrier && block.is(Block.BARRIER)) {
+            if (ignoreBarrier && block.getId() == Block.BARRIER) {
                 hitResult = null;
             } else {
                 hitResult = block.calculateIntercept(startVec, endVec);
@@ -151,14 +151,14 @@ public class BlockClip {
             this.ignoreBarrier = ignoreBarrier;
             this.maxIteration = maxIteration;
 
-            this.currentVec = startVec.copyVec();
+            this.currentVec = startVec.clone();
             this.currentInteration = 0;
-            this.blockStartX = Mth.floor(startVec.x);
-            this.blockStartY = Mth.floor(startVec.y);
-            this.blockStartZ = Mth.floor(startVec.z);
-            this.blockEndX = Mth.floor(endVec.x);
-            this.blockEndY = Mth.floor(endVec.y);
-            this.blockEndZ = Mth.floor(endVec.z);
+            this.blockStartX = (int) Math.floor(startVec.x);
+            this.blockStartY = (int) Math.floor(startVec.y);
+            this.blockStartZ = (int) Math.floor(startVec.z);
+            this.blockEndX = (int) Math.floor(endVec.x);
+            this.blockEndY = (int) Math.floor(endVec.y);
+            this.blockEndZ = (int) Math.floor(endVec.z);
             this.blockCurrentX = blockStartX;
             this.blockCurrentY = blockStartY;
             this.blockCurrentZ = blockStartZ;
@@ -169,7 +169,8 @@ public class BlockClip {
             if (hitResult != null) return Optional.of(hitResult);
 
             while (currentInteration < maxIteration) {
-                if (blockCurrentX == blockEndX && blockCurrentY == blockEndY && blockCurrentZ == blockEndZ) return Optional.empty();
+                if (blockCurrentX == blockEndX && blockCurrentY == blockEndY && blockCurrentZ == blockEndZ)
+                    return Optional.empty();
                 step();
                 hitResult = BlockClip.clip(level, currentVec, endVec, liquid, ignoreBarrier, blockCurrentX, blockCurrentY, blockCurrentZ).orElse(null);
                 if (hitResult != null) return Optional.of(hitResult);

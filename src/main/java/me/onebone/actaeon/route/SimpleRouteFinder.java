@@ -2,10 +2,7 @@ package me.onebone.actaeon.route;
 
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Position;
-import net.easecation.eccommons.promise.AsyncPromise;
-
-import java.util.ArrayList;
-import java.util.List;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 public class SimpleRouteFinder implements IRouteFinder {
 
@@ -14,10 +11,10 @@ public class SimpleRouteFinder implements IRouteFinder {
 	}
 
 	@Override
-	public AsyncPromise<List<Node>> search(Entity entity, Position start, Position destination) {
-		List<Node> result = new ArrayList<>();
+	public ObjectArrayList<Node> search(Entity entity, Position start, Position destination) {
+		ObjectArrayList<Node> result = new ObjectArrayList<>();
 		result.add(new Node(destination));  // just go straight
-		return AsyncPromise.success(result);
+		return result;
 	}
 
 }

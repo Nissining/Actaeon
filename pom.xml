@@ -6,39 +6,38 @@
   <artifactId>Actaeon</artifactId>
   <version>1.0</version>
   <packaging>jar</packaging>
-  <parent>
-    <groupId>net.easecation</groupId>
-    <artifactId>easecation-root</artifactId>
-    <version>1.0.0</version>
-  </parent>
 
   <properties>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.source>17</maven.compiler.source>
+    <maven.compiler.target>17</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- 本地测试服务端插件目录 -->
     <dir.api>../_api</dir.api>
-    <dir.server>../_server</dir.server>
-    <dir.login>../_login</dir.login>
-    <dir.proxy>../_proxy</dir.proxy>
-    <dir.login-proxy>../_proxy0</dir.login-proxy>
+    <dir.server>../FAP_Server</dir.server>
   </properties>
 
   <name>Actaeon</name>
   <url>https://github.com/onebone/Actaeon/</url>
 
+  <repositories>
+    <repository>
+      <id>repo-lanink-cn</id>
+      <url>https://repo.lanink.cn/repository/maven-public/</url>
+    </repository>
+  </repositories>
+
   <dependencies>
     <dependency>
       <groupId>cn.nukkit</groupId>
-      <artifactId>nukkit</artifactId>
-      <version>1.0-SNAPSHOT</version>
+      <artifactId>Nukkit</artifactId>
+      <version>MOT-SNAPSHOT</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
-      <groupId>net.easecation</groupId>
-      <artifactId>ECCommons</artifactId>
-      <version>1.0.0</version>
-      <scope>provided</scope>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>RELEASE</version>
+      <scope>compile</scope>
     </dependency>
   </dependencies>
 

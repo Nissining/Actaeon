@@ -54,15 +54,13 @@ public interface IMovingEntity {
 
     Entity getHate();
 
+    void knockBack(Entity attacker, double damage, double x, double z, double baseH, double baseV);
+
     Router getRouter();
 
     boolean isLookAtFront();
 
     void setLookAtFront(boolean lookAtFront);
-
-    boolean isAutoCollide();
-
-    void setAutoCollide(boolean autoCollide);
 
     Map<String, MovingEntityHook> getHooks();
 

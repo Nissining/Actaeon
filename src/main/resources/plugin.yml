@@ -4,6 +4,3 @@ author: onebone
 api: [1.0.0]
 main: me.onebone.actaeon.Actaeon
 load: STARTUP
-
-depend:
-  - ECCommons
