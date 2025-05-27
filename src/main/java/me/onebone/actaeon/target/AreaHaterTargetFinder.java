@@ -21,7 +21,7 @@ public class AreaHaterTargetFinder extends TargetFinder {
         double nearest = this.radius * this.radius;
 
         for (Player player: this.getEntity().getLevel().getPlayers().values()) {
-            if (!player.isAlive() || player.isCreative()) {
+            if (!player.isAlive() || player.isCreative() || player.isSpectator()) {
                 continue;
             }
 

@@ -5,21 +5,41 @@ import cn.nukkit.block.Block;
 import cn.nukkit.entity.Entity;
 import cn.nukkit.level.Position;
 import cn.nukkit.math.Vector3;
+import cn.nukkit.scheduler.ServerScheduler;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
+import lombok.val;
 import me.onebone.actaeon.Actaeon;
 import me.onebone.actaeon.entity.Climbable;
 import me.onebone.actaeon.entity.Fallable;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ThreadPoolExecutor;
 
 public class AdvancedRouteFinder implements IRouteFinder {
+    private static final ThreadPoolExecutor ASYNC_POOL;
+
+    static {
+        try {
+            val asyncPool = ServerScheduler.class.getDeclaredField("asyncPool");
+            asyncPool.setAccessible(true);
+
+            ASYNC_POOL = (ThreadPoolExecutor) asyncPool.get(Server.getInstance().getScheduler());
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public CompletableFuture<ObjectArrayList<Node>> searchAsync(Entity entity, Position start, Position destination) {
+        return CompletableFuture.supplyAsync(() -> search(entity, start, destination), ASYNC_POOL);
+    }
 
     @Override
     public ObjectArrayList<Node> search(Entity entity, Position start, Position destination) {
         Set<Node> open = new HashSet<>();
         Grid grid = new Grid();
         long forceStopTime = System.currentTimeMillis() + 1000 * 5;  // 寻路超过5秒则强制停止
-
         try {
             Node startNode = new Node(start.floor());
             Node endNode = new Node(destination.floor());
@@ -150,7 +170,6 @@ public class AdvancedRouteFinder implements IRouteFinder {
         Vector3 vec = node.getVector3();
         boolean s1, s2, s3, s4;
 
-        // 4个方向效率更高
         double y;
         if (s1 = (y = isWalkableAt(entity, vec.add(1, 0, 0))) != -256) {
             neighbors.add(grid.getNode(vec.add(1, y, 0)));

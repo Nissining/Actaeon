@@ -5,12 +5,9 @@ import cn.nukkit.math.Vector3;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.val;
 import me.onebone.actaeon.entity.IMovingEntity;
 
 import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 public class Router implements Iterator<Node> {
 
@@ -65,17 +62,19 @@ public class Router implements Iterator<Node> {
             this.lastDestination = Position.fromObject(destination, destination.level);
 
             this.isSearching = true;
-            val result = routeFinder.search(entity.getEntity(), entity.getPosition(), destination);
-            if (result == null) {
-                this.isSearching = false;
-                // 寻路失败
-                this.arrived();
-                return;
-            }
-            this.isSearching = false;
-            this.nodes = result;
-            this.arrived = false;
-            this.current = 0;
+            routeFinder.searchAsync(entity.getEntity(), entity.getPosition(), destination)
+                    .thenAccept(result -> {
+                        if (result == null || result.isEmpty()) {
+                            this.isSearching = false;
+                            // 寻路失败
+                            this.arrived();
+                            return;
+                        }
+                        this.isSearching = false;
+                        this.nodes = result;
+                        this.arrived = false;
+                        this.current = 0;
+                    });
         }
     }
 
